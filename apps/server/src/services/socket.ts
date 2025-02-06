@@ -3,7 +3,7 @@ import Redis from "ioredis";
 
 const pub = new Redis({
   host: "127.0.0.1",
-  port: 6379, 
+  port: 6379,
 });
 const sub = new Redis({
   host: "127.0.0.1",
@@ -14,6 +14,7 @@ class SocketService {
   private _io: Server;
   constructor() {
     console.log("init socket service....");
+    sub.subscribe("MESSAGES");
     this._io = new Server({
       cors: {
         allowedHeaders: ["*"],
@@ -33,6 +34,11 @@ class SocketService {
 
         await pub.publish("MESSAGES", JSON.stringify({ message }));
       });
+    });
+    sub.on("message", async (channel, message) => {
+      if (channel === "MESSAGES") {
+        io.emit("message", message);
+      }
     });
   }
 
